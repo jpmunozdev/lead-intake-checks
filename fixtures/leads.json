@@ -1,0 +1,215 @@
+[
+  {
+    "id": "clean-web-form",
+    "about": "A clean lead from a website form. The baseline everything else is compared to.",
+    "input": { "first_name": "Maria", "last_name": "Lopez", "email": "maria.lopez@example.com", "phone": "(202) 555-0143", "source": "Website" },
+    "expect": {
+      "status": "clean",
+      "issues": [],
+      "lead": { "firstName": "Maria", "greetingName": "Maria", "phone": "+12025550143", "phoneDisplay": "(202) 555-0143", "source": "Website" },
+      "channels": { "call": true, "text": true, "email": true }
+    }
+  },
+  {
+    "id": "phone-with-country-code",
+    "about": "Phone typed with +1 and dashes.",
+    "input": { "firstName": "Derek", "lastName": "Shaw", "email": "derek.shaw@example.org", "phone": "+1 202-555-0178" },
+    "expect": { "status": "clean", "issues": [], "lead": { "phone": "+12025550178" } }
+  },
+  {
+    "id": "phone-with-extension",
+    "about": "Office number with an extension. The extension moves to its own field.",
+    "input": { "first_name": "Paula", "last_name": "Grant", "email": "paula.grant@example.com", "phone": "202.555.0164 ext. 12" },
+    "expect": { "status": "clean", "issues": ["phone_extension"], "lead": { "phone": "+12025550164", "phoneExtension": "12" } }
+  },
+  {
+    "id": "phone-no-area-code",
+    "about": "Seven digits, no area code. Common on mobile forms.",
+    "input": { "first_name": "Omar", "last_name": "Haddad", "email": "omar.haddad@example.com", "phone": "555-0143" },
+    "expect": { "status": "review", "issues": ["phone_missing_area_code"], "lead": { "phone": null }, "channels": { "call": false, "text": false, "email": true } }
+  },
+  {
+    "id": "phone-is-a-sentence",
+    "about": "A note typed into the phone field.",
+    "input": { "first_name": "Keisha", "last_name": "Bell", "email": "keisha.bell@example.net", "phone": "call after 5pm" },
+    "expect": { "status": "review", "issues": ["phone_not_numeric"], "channels": { "call": false, "email": true } }
+  },
+  {
+    "id": "phone-repeated-digits",
+    "about": "One digit repeated to get past a required field.",
+    "input": { "first_name": "Victor", "last_name": "Lane", "email": "victor.lane@example.com", "phone": "999-999-9999" },
+    "expect": { "status": "review", "issues": ["phone_repeated_digits"], "channels": { "call": false } }
+  },
+  {
+    "id": "phone-bad-area-code",
+    "about": "North American area codes never start with 0 or 1.",
+    "input": { "first_name": "Grace", "last_name": "Kim", "email": "grace.kim@example.com", "phone": "(123) 555-0143" },
+    "expect": { "status": "review", "issues": ["phone_bad_area_code"], "channels": { "call": false } }
+  },
+  {
+    "id": "phone-toll-free",
+    "about": "A toll-free number. Callable, but texts usually won't reach a person.",
+    "input": { "first_name": "Ruben", "last_name": "Ortiz", "email": "ruben.ortiz@example.com", "phone": "1-800-555-0199" },
+    "expect": { "status": "review", "issues": ["phone_toll_free"], "channels": { "call": true, "text": false, "email": true } }
+  },
+  {
+    "id": "phone-international",
+    "about": "A UK number. Kept in E.164, but not texted unless you turn on textInternational.",
+    "input": { "first_name": "Amelia", "last_name": "Clarke", "email": "amelia.clarke@example.com", "phone": "+44 20 7946 0958" },
+    "expect": { "status": "clean", "issues": ["phone_international"], "lead": { "phone": "+442079460958" }, "channels": { "call": true, "text": false } }
+  },
+  {
+    "id": "fiction-data-in-production",
+    "about": "With allowReserved off, as in production, a fiction-range number and an example.com address leave nothing to contact.",
+    "options": { "allowReserved": false },
+    "input": { "first_name": "Nora", "last_name": "Price", "email": "nora.price@example.com", "phone": "202-555-0100" },
+    "expect": { "status": "reject", "issues": ["phone_fictional", "email_reserved", "lead_no_contact"], "channels": { "call": false, "email": false } }
+  },
+  {
+    "id": "email-gmail-typo",
+    "about": "gmial.com instead of gmail.com. Flagged with a suggestion and kept out of email sends until fixed.",
+    "replay": false,
+    "input": { "first_name": "Jordan", "last_name": "Ellis", "email": "jordan.ellis@gmial.com", "phone": "(202) 555-0152" },
+    "expect": { "status": "review", "issues": ["email_domain_typo"], "channels": { "call": true, "email": false }, "tags": ["intake-review", "no-valid-email", "email-typo"] }
+  },
+  {
+    "id": "email-tld-typo",
+    "about": "yahoo.con instead of yahoo.com.",
+    "replay": false,
+    "input": { "first_name": "Sam", "last_name": "Rivera", "email": "sam.rivera@yahoo.con", "phone": "202-555-0186" },
+    "expect": { "status": "review", "issues": ["email_domain_typo"], "channels": { "email": false } }
+  },
+  {
+    "id": "email-placeholder",
+    "about": "noemail@ typed to get past a required email field. Common when an agent enters a lead by hand.",
+    "replay": false,
+    "input": { "first_name": "Carla", "last_name": "Mendes", "email": "noemail@gmail.com", "phone": "202-555-0119" },
+    "expect": { "status": "review", "issues": ["email_placeholder"], "lead": { "email": null }, "channels": { "call": true, "email": false } }
+  },
+  {
+    "id": "email-pasted-with-junk",
+    "about": "Copied from a mail client with mailto: and a stray space.",
+    "input": { "first_name": "Chris", "last_name": "Hall", "email": "mailto: Chris.Hall @Example.com", "phone": "202-555-0125" },
+    "expect": { "status": "clean", "issues": ["email_cleaned"], "lead": { "email": "chris.hall@example.com" } }
+  },
+  {
+    "id": "email-two-addresses",
+    "about": "Two addresses in one field. The first one is kept.",
+    "input": { "first_name": "Dana", "last_name": "Kim", "email": "dana.kim@example.com, dana.work@example.org", "phone": "202-555-0131" },
+    "expect": { "status": "review", "issues": ["email_multiple"], "lead": { "email": "dana.kim@example.com" } }
+  },
+  {
+    "id": "email-throwaway-inbox",
+    "about": "A throwaway inbox service.",
+    "replay": false,
+    "input": { "first_name": "Marcus", "last_name": "Webb", "email": "marcus4821@mailinator.com", "phone": "202-555-0137" },
+    "expect": { "status": "review", "issues": ["email_disposable"], "channels": { "call": true, "email": false } }
+  },
+  {
+    "id": "email-shared-inbox",
+    "about": "A shared info@ inbox. Usable, but nobody in particular reads it.",
+    "input": { "first_name": "Brenda", "last_name": "Cole", "email": "info@example.com", "phone": "202-555-0146" },
+    "expect": { "status": "review", "issues": ["email_role"], "channels": { "email": true } }
+  },
+  {
+    "id": "email-missing-tld",
+    "about": "Address cut off before the .com.",
+    "input": { "first_name": "Kevin", "last_name": "Brooks", "email": "kevin.brooks@example", "phone": "202-555-0158" },
+    "expect": { "status": "review", "issues": ["email_invalid"], "channels": { "call": true, "email": false } }
+  },
+  {
+    "id": "name-all-caps-with-suffix",
+    "about": "Full name in caps with an apostrophe, a hyphen, a Mc and a suffix.",
+    "input": { "full_name": "SEAN O'CONNOR-MCKAY JR.", "email": "sean.oconnor@example.com", "phone": "202-555-0161" },
+    "expect": { "status": "clean", "issues": ["name_split", "name_case_fixed"], "lead": { "firstName": "Sean", "lastName": "O'Connor-McKay", "suffix": "Jr.", "greetingName": "Sean" } }
+  },
+  {
+    "id": "name-full-name-in-first-field",
+    "about": "The whole name typed into the first name box.",
+    "input": { "first_name": "Angela Moore", "last_name": "", "email": "angela.moore@example.com", "phone": "202-555-0167" },
+    "expect": { "status": "clean", "issues": ["name_split"], "lead": { "firstName": "Angela", "lastName": "Moore" } }
+  },
+  {
+    "id": "name-last-name-first",
+    "about": "Last name, first name, as some CRMs export it.",
+    "input": { "name": "Nguyen, Linh", "email": "linh.nguyen@example.com", "phone": "202-555-0172" },
+    "expect": { "status": "clean", "issues": ["name_split"], "lead": { "firstName": "Linh", "lastName": "Nguyen" } }
+  },
+  {
+    "id": "name-missing",
+    "about": "No name at all. greetingName is null, so a template can fall back to 'Hi there'.",
+    "input": { "email": "pat.r@example.com", "phone": "202-555-0175" },
+    "expect": { "status": "clean", "issues": ["name_missing"], "lead": { "firstName": null, "greetingName": null } }
+  },
+  {
+    "id": "name-with-emoji",
+    "about": "An emoji in the first name field.",
+    "input": { "first_name": "Lena ✨", "last_name": "Park", "email": "lena.park@example.com", "phone": "202-555-0181" },
+    "expect": { "status": "clean", "issues": ["name_cleaned"], "lead": { "firstName": "Lena", "greetingName": "Lena" } }
+  },
+  {
+    "id": "name-placeholder",
+    "about": "A placeholder instead of a name. Contactable, but don't greet them as 'Unknown'.",
+    "input": { "first_name": "Unknown", "email": "u.lead@example.com", "phone": "202-555-0184" },
+    "expect": { "status": "review", "issues": ["name_placeholder"], "lead": { "greetingName": null } }
+  },
+  {
+    "id": "name-keyboard-mash",
+    "about": "Keys mashed to get past the name fields.",
+    "input": { "first_name": "jkhgf", "last_name": "sdfgh", "email": "jk.lead@example.com", "phone": "202-555-0195" },
+    "expect": { "status": "review", "issues": ["name_case_fixed", "name_suspicious"] }
+  },
+  {
+    "id": "test-submission",
+    "about": "Someone testing the form.",
+    "input": { "first_name": "Test", "last_name": "Test", "email": "test@example.com", "phone": "202-555-0111" },
+    "expect": { "status": "reject", "issues": ["lead_test"], "tags": ["intake-reject", "test-lead"] }
+  },
+  {
+    "id": "no-contact-info",
+    "about": "A name and nothing else.",
+    "input": { "first_name": "Brian", "last_name": "Price", "email": "", "phone": "" },
+    "expect": { "status": "reject", "issues": ["phone_missing", "email_missing", "lead_no_contact"] }
+  },
+  {
+    "id": "facebook-lead-ads",
+    "about": "Lead in the Facebook Graph API field_data shape.",
+    "replay": false,
+    "input": {
+      "created_time": "2026-10-26T09:14:02+0000",
+      "field_data": [
+        { "name": "full_name", "values": ["Tasha Reed"] },
+        { "name": "email", "values": ["tasha.reed@example.com"] },
+        { "name": "phone_number", "values": ["+12025550127"] }
+      ]
+    },
+    "expect": { "status": "clean", "issues": ["name_split"], "lead": { "firstName": "Tasha", "lastName": "Reed", "phone": "+12025550127" } }
+  },
+  {
+    "id": "n8n-webhook-item",
+    "about": "What an n8n Webhook node outputs: the form fields sit under body.",
+    "replay": false,
+    "input": {
+      "headers": { "content-type": "application/json" },
+      "params": {},
+      "query": {},
+      "body": { "firstName": "Luis", "lastName": "Romero", "email": "luis.romero@example.com", "phone": "2025550133" },
+      "webhookUrl": "https://n8n.example.com/webhook/leads",
+      "executionMode": "production"
+    },
+    "expect": { "status": "clean", "issues": [], "lead": { "firstName": "Luis", "phone": "+12025550133" } }
+  },
+  {
+    "id": "custom-field-labels",
+    "about": "A form with its own field labels, mapped with options.fieldMap.",
+    "options": { "fieldMap": { "phone": "Best number to reach you", "fullName": "Your name please" } },
+    "input": { "Your name please": "Ruth Diaz", "Email Address": "ruth.diaz@example.com", "Best number to reach you": "202 555 0191" },
+    "expect": { "status": "clean", "issues": ["name_split"], "lead": { "firstName": "Ruth", "phone": "+12025550191", "email": "ruth.diaz@example.com" } }
+  },
+  {
+    "id": "repeat-of-clean-web-form",
+    "about": "Maria again, from a second form, typed differently. Clean on its own, flagged as a duplicate in a batch.",
+    "input": { "first_name": "Maria", "last_name": "Lopez", "email": "Maria.Lopez@Example.com", "phone": "+1 (202) 555-0143" },
+    "expect": { "status": "clean", "issues": [], "lead": { "phone": "+12025550143", "email": "maria.lopez@example.com" } }
+  }
+]

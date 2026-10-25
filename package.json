@@ -1,0 +1,36 @@
+{
+  "name": "lead-intake-checks",
+  "version": "0.1.0",
+  "description": "Check and clean inbound leads before they reach your CRM: phone, email, name, duplicates. No dependencies. Runs in Node or an n8n Code node.",
+  "type": "module",
+  "exports": "./src/index.js",
+  "bin": {
+    "lead-replay": "bin/replay.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "dist",
+    "fixtures"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "build": "node scripts/build-n8n.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "lead",
+    "crm",
+    "n8n",
+    "gohighlevel",
+    "phone-validation",
+    "email-validation",
+    "deduplication",
+    "speed-to-lead"
+  ],
+  "author": "John Muñoz (https://jpmunoz.info)",
+  "license": "MIT",
+  "repository": "github:jpmunozdev/lead-intake-checks"
+}
