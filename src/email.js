@@ -45,6 +45,10 @@ export function checkEmail(raw, options = {}) {
     return result;
   }
 
+  // "Jane Doe <jane@acme.com>": keep only the address inside the angle brackets.
+  const named = [...text.matchAll(/<([^<>\s]+@[^<>\s]+)>/g)].map((m) => m[1]);
+  if (named.length) text = named.join(' ');
+
   const candidates = text.split(/[\s,;/]+/).filter((t) => t.includes('@'));
   if (candidates.length > 1) {
     add('email_multiple');
@@ -55,7 +59,7 @@ export function checkEmail(raw, options = {}) {
     .replace(/\s+/g, '')
     .replace(/^mailto:/i, '')
     .replace(/^[<"'(]+|[>"'),.;:]+$/g, '');
-  if (cleaned !== text) add('email_cleaned');
+  if (named.length || cleaned !== text) add('email_cleaned');
 
   const address = cleaned.toLowerCase();
   const at = address.lastIndexOf('@');

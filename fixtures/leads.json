@@ -54,9 +54,9 @@
   },
   {
     "id": "phone-international",
-    "about": "A UK number. Kept in E.164, but not texted unless you turn on textInternational.",
+    "about": "A UK number. Kept in E.164, but not texted unless you turn on textInternational. Goes to review, since a US number typed with + but no 1 looks the same.",
     "input": { "first_name": "Amelia", "last_name": "Clarke", "email": "amelia.clarke@example.com", "phone": "+44 20 7946 0958" },
-    "expect": { "status": "clean", "issues": ["phone_international"], "lead": { "phone": "+442079460958" }, "channels": { "call": true, "text": false } }
+    "expect": { "status": "review", "issues": ["phone_international"], "lead": { "phone": "+442079460958" }, "channels": { "call": true, "text": false } }
   },
   {
     "id": "fiction-data-in-production",

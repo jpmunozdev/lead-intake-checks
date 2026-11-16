@@ -2,6 +2,7 @@ import { issue, TEST_WORDS } from './issues.js';
 
 const TITLES = new Set(['mr', 'mrs', 'ms', 'miss', 'mx', 'dr', 'prof']);
 const SUFFIX = /,?\s+(jr|sr|ii|iii|iv)\.?$/i;
+const CREDENTIALS = new Set(['md', 'phd', 'dds', 'dmd', 'cpa', 'esq', 'rn', 'mba', 'jd']);
 const PLACEHOLDERS = new Set([
   ...TEST_WORDS, 'none', 'unknown', 'null', 'undefined', 'name', 'first', 'last', 'firstname', 'lastname',
   'noname', 'xxx', 'lead', 'customer', 'user', 'anonymous',
@@ -62,6 +63,11 @@ function scrub(value) {
 function splitFull(text) {
   let rest = text;
   let suffix = null;
+  // "Jordan Ellis, MD" ends in a credential, not a first name.
+  let cred;
+  while ((cred = rest.match(/,\s*([\p{L}.]+)$/u)) && CREDENTIALS.has(cred[1].toLowerCase().replace(/\./g, ''))) {
+    rest = rest.slice(0, cred.index);
+  }
   const sfx = rest.match(SUFFIX);
   if (sfx) {
     suffix = sfx[1];

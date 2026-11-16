@@ -24,7 +24,7 @@ const { checkLeads } = (() => {
     phone_fictional: ['error', 'Phone is in the 555-0100 to 555-0199 range reserved for fiction.'],
     phone_premium: ['error', '900 numbers are premium-rate lines.'],
     phone_toll_free: ['warn', 'Toll-free number. Likely a business line, and texts may not reach a person.'],
-    phone_international: ['info', 'Number is outside North America. Only its length was checked.'],
+    phone_international: ['warn', 'Number is outside North America, or a US number typed with + but no 1. Only its length was checked.'],
     phone_extension: ['info', 'Extension moved to its own field.'],
 
     email_missing: ['info', 'No email address.'],
@@ -192,6 +192,10 @@ const { checkLeads } = (() => {
       return result;
     }
 
+    // "Jane Doe <jane@acme.com>": keep only the address inside the angle brackets.
+    const named = [...text.matchAll(/<([^<>\s]+@[^<>\s]+)>/g)].map((m) => m[1]);
+    if (named.length) text = named.join(' ');
+
     const candidates = text.split(/[\s,;/]+/).filter((t) => t.includes('@'));
     if (candidates.length > 1) {
       add('email_multiple');
@@ -202,7 +206,7 @@ const { checkLeads } = (() => {
       .replace(/\s+/g, '')
       .replace(/^mailto:/i, '')
       .replace(/^[<"'(]+|[>"'),.;:]+$/g, '');
-    if (cleaned !== text) add('email_cleaned');
+    if (named.length || cleaned !== text) add('email_cleaned');
 
     const address = cleaned.toLowerCase();
     const at = address.lastIndexOf('@');
@@ -280,6 +284,7 @@ const { checkLeads } = (() => {
 
   const TITLES = new Set(['mr', 'mrs', 'ms', 'miss', 'mx', 'dr', 'prof']);
   const SUFFIX = /,?\s+(jr|sr|ii|iii|iv)\.?$/i;
+  const CREDENTIALS = new Set(['md', 'phd', 'dds', 'dmd', 'cpa', 'esq', 'rn', 'mba', 'jd']);
   const PLACEHOLDERS = new Set([
     ...TEST_WORDS, 'none', 'unknown', 'null', 'undefined', 'name', 'first', 'last', 'firstname', 'lastname',
     'noname', 'xxx', 'lead', 'customer', 'user', 'anonymous',
@@ -340,6 +345,11 @@ const { checkLeads } = (() => {
   function splitFull(text) {
     let rest = text;
     let suffix = null;
+    // "Jordan Ellis, MD" ends in a credential, not a first name.
+    let cred;
+    while ((cred = rest.match(/,\s*([\p{L}.]+)$/u)) && CREDENTIALS.has(cred[1].toLowerCase().replace(/\./g, ''))) {
+      rest = rest.slice(0, cred.index);
+    }
     const sfx = rest.match(SUFFIX);
     if (sfx) {
       suffix = sfx[1];

@@ -11,7 +11,7 @@ export const ISSUES = {
   phone_fictional: ['error', 'Phone is in the 555-0100 to 555-0199 range reserved for fiction.'],
   phone_premium: ['error', '900 numbers are premium-rate lines.'],
   phone_toll_free: ['warn', 'Toll-free number. Likely a business line, and texts may not reach a person.'],
-  phone_international: ['info', 'Number is outside North America. Only its length was checked.'],
+  phone_international: ['warn', 'Number is outside North America, or a US number typed with + but no 1. Only its length was checked.'],
   phone_extension: ['info', 'Extension moved to its own field.'],
 
   email_missing: ['info', 'No email address.'],

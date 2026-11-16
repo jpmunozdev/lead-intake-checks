@@ -52,15 +52,15 @@ The output is trimmed here. Every result also has `suffix`, `phoneExtension`, `s
 
 ### Phone
 
-Normalizes any common format to E.164 and splits off extensions. North American numbers are checked for structure: a missing area code, area codes that can't exist (0 or 1 first, N11, the reserved N9X, 37X and 96X ranges), bad exchanges, one digit repeated, 900 premium lines, the 555-0100 to 555-0199 fiction range, and toll-free numbers. Numbers from other countries get a length check.
+Normalizes any common format to E.164 and splits off extensions. North American numbers are checked for structure: a missing area code, area codes that can't exist (0 or 1 first, N11, the reserved N9X, 37X and 96X ranges), bad exchanges, one digit repeated, 900 premium lines, the 555-0100 to 555-0199 fiction range, and toll-free numbers. Numbers from other countries get a length check and go to review, since a US number typed with + but no 1 looks the same.
 
 ### Email
 
-Strips `mailto:`, brackets and stray spaces. Keeps the first address when two are pasted in one field. Rejects invalid syntax, throwaway inbox services, example domains, and placeholders like `noemail@` and `none@`. Flags shared inboxes like `info@`. Suggests a fix for likely typos of the big consumer providers (`gmial.com`, `yahoo.con`, `hotmal.com`, `verizon.ner`) while leaving real lookalikes alone (`ymail.com`, `email.com`, `yahoo.co.uk`, `att.com`).
+Strips `mailto:`, display names like `Jane Doe <jane@acme.com>`, brackets and stray spaces. Keeps the first address when two are pasted in one field. Rejects invalid syntax, throwaway inbox services, example domains, and placeholders like `noemail@` and `none@`. Flags shared inboxes like `info@`. Suggests a fix for likely typos of the big consumer providers (`gmial.com`, `yahoo.con`, `hotmal.com`, `verizon.ner`) while leaving real lookalikes alone (`ymail.com`, `email.com`, `yahoo.co.uk`, `att.com`).
 
 ### Name
 
-Splits a full name, a whole name typed into the first name field, and "Last, First". Drops titles, keeps suffixes, removes emoji and digits. Fixes all-caps and all-lowercase names (`SEAN O'CONNOR-MCKAY JR.` becomes Sean O'Connor-McKay, Jr.) and leaves mixed case alone, since that's how the person spells it. Flags placeholders and keyboard mash.
+Splits a full name, a whole name typed into the first name field, and "Last, First". Drops titles and credentials like MD, keeps suffixes, removes emoji and digits. Fixes all-caps and all-lowercase names (`SEAN O'CONNOR-MCKAY JR.` becomes Sean O'Connor-McKay, Jr.) and leaves mixed case alone, since that's how the person spells it. Flags placeholders and keyboard mash.
 
 ### Lead
 
@@ -106,11 +106,11 @@ const batch = checkLeads(rowsFromASheet); // also flags duplicates within the ba
 
 ## Test your workflow with messy leads
 
-[`fixtures/leads.json`](fixtures/leads.json) holds 31 messy leads, each with a note on what's wrong and the expected result. `bin/replay.js` posts them to a webhook one at a time, so you can watch how your workflow handles each:
+[`fixtures/leads.json`](fixtures/leads.json) holds 31 messy leads, each with a note on what's wrong and the expected result. `bin/replay.js` posts them to a webhook one at a time, so you can watch how your workflow handles each. Use the production URL (`/webhook/`) with the workflow active. The test URL (`/webhook-test/`) takes only one request each time you click Listen for test event, so the rest would fail.
 
 ```bash
-node bin/replay.js --url https://your-n8n.example.com/webhook-test/leads --dry-run
-node bin/replay.js --url https://your-n8n.example.com/webhook-test/leads --delay 1500
+node bin/replay.js --url https://your-n8n.example.com/webhook/leads --dry-run
+node bin/replay.js --url https://your-n8n.example.com/webhook/leads --delay 1500
 ```
 
 It sends 25 of the 31. Every phone number in those 25 is in the 555-0100 to 555-0199 range set aside for fiction, Ofcom's drama range for the UK, or one repeated digit. Every email uses an example domain or a reserved TLD. So if your workflow texts, calls or emails a test lead, nobody real gets it. The other 6 use real provider domains to show typos and placeholders, or a platform-only shape, and are never sent. A test checks all of this on every run.

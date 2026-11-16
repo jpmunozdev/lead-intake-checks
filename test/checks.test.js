@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkPhone, checkEmail, checkName } from '../src/index.js';
+import { checkPhone, checkEmail, checkName, checkLead } from '../src/index.js';
 
 const codes = (result) => result.issues.map((i) => i.code);
 
@@ -71,4 +71,25 @@ test('name: non-Latin names pass untouched', () => {
   const result = checkName({ firstName: '美玲', lastName: '陳' });
   assert.equal(result.firstName, '美玲');
   assert.deepEqual(codes(result), []);
+});
+
+test('email: a display name in angle brackets is dropped', () => {
+  const named = checkEmail('Jane Doe <jane.doe@acme.com>');
+  assert.equal(named.address, 'jane.doe@acme.com');
+  assert.deepEqual(codes(named), ['email_cleaned']);
+  assert.deepEqual(codes(checkEmail('Jane <jane@acme.com>, Bob <bob@acme.com>')), ['email_multiple', 'email_cleaned']);
+});
+
+test('name: a credential after a comma is not a first name', () => {
+  const md = checkName({ fullName: 'Jordan Ellis, MD' });
+  assert.deepEqual([md.firstName, md.lastName, md.greetingName], ['Jordan', 'Ellis', 'Jordan']);
+  assert.equal(checkName({ fullName: 'Ellis, Jordan, M.D.' }).firstName, 'Jordan');
+  assert.equal(checkName({ fullName: 'Jordan Ellis Jr., PhD' }).suffix, 'Jr.');
+  assert.equal(checkName({ fullName: 'Nguyen, Linh' }).firstName, 'Linh', 'last name first still works');
+});
+
+test('phone: a + number outside North America goes to a person', () => {
+  const lead = checkLead({ first_name: 'Pat', last_name: 'Lee', phone: '+202 555 0143' });
+  assert.equal(lead.lead.phone, '+2025550143', 'read as +20, Egypt: likely a US number missing its 1');
+  assert.equal(lead.status, 'review');
 });
